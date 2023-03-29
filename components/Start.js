@@ -5,7 +5,9 @@ import {
   TextInput,
   StyleSheet,
   ImageBackground,
-  TouchableOpacity
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 
 //creat a background color as an object
@@ -82,6 +84,11 @@ const Start = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* fix keyboard bug ios */}
+        {Platform.OS === 'ios' ? (
+          <KeyboardAvoidingView behavior='padding' />
+        ) : null}
       </ImageBackground>
     </View>
   );
