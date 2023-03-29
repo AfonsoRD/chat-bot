@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 //import libary to handle the chat
-import { GiftedChat } from 'react-native-gifted-chat';
+import { Bubble, GiftedChat } from 'react-native-gifted-chat';
 
 const Chat = ({ route, navigation }) => {
   const { name, color } = route.params;
@@ -30,6 +30,12 @@ const Chat = ({ route, navigation }) => {
           name: 'React Native',
           avatar: 'https://placeimg.com/140/140/any'
         }
+      },
+      {
+        _id: 2,
+        text: 'This is a system message',
+        createdAt: new Date(),
+        system: true
       }
     ]);
   }, []);
@@ -40,11 +46,28 @@ const Chat = ({ route, navigation }) => {
     );
   };
 
+  const renderBubble = (props) => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: '#000'
+          },
+          left: {
+            backgroundColor: '#FFF'
+          }
+        }}
+      />
+    );
+  };
+
   return (
     //set the background color imported from Start.js as a object
     <View style={[styles.container, color]}>
       <GiftedChat
         messages={messages}
+        renderBubble={renderBubble}
         onSend={(messages) => onSend(messages)}
         user={{
           _id: 1
