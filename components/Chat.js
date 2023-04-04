@@ -4,14 +4,23 @@ import {
   View,
   Text,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
+
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  where
+} from 'firebase/firestore';
 
 //import libary to handle the chat
 import { Bubble, GiftedChat } from 'react-native-gifted-chat';
 
-const Chat = ({ route, navigation }) => {
-  const { name, color } = route.params;
+const Chat = ({ db, route, navigation }) => {
+  const { userID, name, color } = route.params;
   //console.log('backgroundColor', color);
 
   //A chat app needs to send, receive, and display messages, so add messages to state initialization
@@ -20,30 +29,24 @@ const Chat = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    setMessages([
-      {
-        _id: 1,
-        text: 'Hello developer',
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: 'React Native',
-          avatar: 'https://placeimg.com/140/140/any'
-        }
-      },
-      {
-        _id: 2,
-        text: 'This is a system message',
-        createdAt: new Date(),
-        system: true
-      }
-    ]);
+    const q = query(collection(db, 'messages'), where('uid', '==', userID));
+    const unsubMessage = onSnapshot(q, (documentsSnapshot) => {
+      let newMessages = [];
+      documentsSnapshot.forEach((doc) => {
+        newMessages.push({ id: doc.id, ...doc.data() });
+      });
+      setMessages(newMessages);
+    });
+
+    // Clean up code
+    return () => {
+      // code to execute when the component will be unmounted
+      if (unsubMessage) unsubMessage();
+    };
   }, []);
 
   const onSend = (newMessages) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
-    );
+    addDoc(collection(db, 'messages'), newMessages[0]);
   };
 
   const renderBubble = (props) => {
@@ -68,9 +71,10 @@ const Chat = ({ route, navigation }) => {
       <GiftedChat
         messages={messages}
         renderBubble={renderBubble}
-        onSend={(messages) => onSend(messages)}
+        onSend={(newMessages) => onSend(newMessages)}
         user={{
-          _id: 1
+          uid: userID,
+          name: name
         }}
       />
       {/* fix keyboard bug android */}

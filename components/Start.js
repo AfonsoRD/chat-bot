@@ -7,8 +7,11 @@ import {
   ImageBackground,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
+
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 //creat a background color as an object
 const backgroundColors = {
@@ -22,6 +25,23 @@ const Start = ({ navigation }) => {
   const [name, setName] = useState('');
   //set the color in different useState
   const [color, setColor] = useState('');
+
+  const auth = getAuth();
+
+  const signInUser = () => {
+    signInAnonymously(auth)
+      .then((result) => {
+        navigation.navigate('Chat', {
+          userID: result.user.uid,
+          name: name,
+          color: color
+        });
+        Alert.alert('Signed in Successfully!');
+      })
+      .catch((error) => {
+        Alert.alert('Unable to sign in, try later again.');
+      });
+  };
 
   return (
     <View style={styles.container}>
@@ -72,12 +92,7 @@ const Start = ({ navigation }) => {
             style={[styles.nameBox, styles.chatButton]}
             // title='Go to Chat'
             //method to export name, and color
-            onPress={() =>
-              navigation.navigate('Chat', {
-                name: name,
-                color: color
-              })
-            }
+            onPress={signInUser}
           >
             <Text style={[styles.colorSelector, styles.chatButtonText]}>
               Start Chatting
