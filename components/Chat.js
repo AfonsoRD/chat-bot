@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  KeyboardAvoidingView,
-  Platform,
-  Alert
-} from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 
 import {
   collection,
   addDoc,
   onSnapshot,
   query,
-  where
+  where,
+  orderBy
 } from 'firebase/firestore';
 
 //import libary to handle the chat
@@ -29,19 +23,25 @@ const Chat = ({ db, route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    const q = query(collection(db, 'messages'), where('uid', '==', userID));
-    const unsubMessage = onSnapshot(q, (documentsSnapshot) => {
+    const q = query(collection(db, 'messages'), orderBy('createdAt', 'desc'));
+
+    const unsubMessages = onSnapshot(q, (documentsSnapshot) => {
       let newMessages = [];
       documentsSnapshot.forEach((doc) => {
-        newMessages.push({ id: doc.id, ...doc.data() });
+        newMessages.push({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: new Date(doc.data().createdAt.toMillis())
+        });
       });
+
       setMessages(newMessages);
     });
 
     // Clean up code
     return () => {
       // code to execute when the component will be unmounted
-      if (unsubMessage) unsubMessage();
+      if (unsubMessages) unsubMessages();
     };
   }, []);
 
@@ -55,7 +55,7 @@ const Chat = ({ db, route, navigation }) => {
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor: '#000'
+            backgroundColor: '#0096FF'
           },
           left: {
             backgroundColor: '#FFF'
@@ -73,7 +73,7 @@ const Chat = ({ db, route, navigation }) => {
         renderBubble={renderBubble}
         onSend={(newMessages) => onSend(newMessages)}
         user={{
-          uid: userID,
+          _id: userID,
           name: name
         }}
       />
