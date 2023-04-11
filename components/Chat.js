@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 
 //import libary to handle the chat
-import { Bubble, GiftedChat } from 'react-native-gifted-chat';
+import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 
 const Chat = ({ db, route, navigation, isConnected }) => {
   const { userID, name, color } = route.params;
@@ -86,6 +86,11 @@ const Chat = ({ db, route, navigation, isConnected }) => {
     );
   };
 
+  const renderInputToolbar = (props) => {
+    if (isConnected) return <InputToolbar {...props} />;
+    else return null;
+  };
+
   return (
     //set the background color imported from Start.js as a object
     <View style={[styles.container, color]}>
@@ -97,6 +102,7 @@ const Chat = ({ db, route, navigation, isConnected }) => {
           _id: userID,
           name: name
         }}
+        renderInputToolbar={renderInputToolbar}
       />
       {/* fix keyboard bug android */}
       {Platform.OS === 'android' ? (

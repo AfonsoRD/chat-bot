@@ -47,6 +47,7 @@ const App = () => {
       Alert.alert('Connection Lost!');
       disableNetwork(db);
     } else if (connectionStatus.isConnected === true) {
+      Alert.alert('Connection Restablished!');
       enableNetwork(db);
     }
   }, [connectionStatus.isConnected]);
