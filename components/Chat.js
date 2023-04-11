@@ -1,49 +1,70 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   collection,
   addDoc,
   onSnapshot,
   query,
-  where,
   orderBy
 } from 'firebase/firestore';
 
 //import libary to handle the chat
 import { Bubble, GiftedChat } from 'react-native-gifted-chat';
 
-const Chat = ({ db, route, navigation }) => {
+const Chat = ({ db, route, navigation, isConnected }) => {
   const { userID, name, color } = route.params;
   //console.log('backgroundColor', color);
 
   //A chat app needs to send, receive, and display messages, so add messages to state initialization
   const [messages, setMessages] = useState([]);
 
+  const loadCachedMessages = async () => {
+    const cachedMessages = (await AsyncStorage.getItem('messages')) || [];
+    setMessages(JSON.parse(cachedMessages));
+  };
+
+  let unsubMessages;
+
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    const q = query(collection(db, 'messages'), orderBy('createdAt', 'desc'));
+    if (isConnected === true) {
+      // unregister current onSnapshot() listener to avoid registering multiple listeners when useEffect code is re-executed.
+      if (unsubMessages) unsubMessages();
+      unsubMessages = null;
+      const q = query(collection(db, 'messages'), orderBy('createdAt', 'desc'));
 
-    const unsubMessages = onSnapshot(q, (documentsSnapshot) => {
-      let newMessages = [];
-      documentsSnapshot.forEach((doc) => {
-        newMessages.push({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: new Date(doc.data().createdAt.toMillis())
+      unsubMessages = onSnapshot(q, (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach((doc) => {
+          newMessages.push({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis())
+          });
         });
+        cacheNewMessages(newMessages);
+        setMessages(newMessages);
       });
-
-      setMessages(newMessages);
-    });
+    } else loadCachedMessages();
 
     // Clean up code
     return () => {
       // code to execute when the component will be unmounted
       if (unsubMessages) unsubMessages();
     };
-  }, []);
+  }, [isConnected]);
+
+  const cacheNewMessages = async (messagesToCache) => {
+    try {
+      await AsyncStorage.setItem('messages', JSON.stringify(messagesToCache));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   const onSend = (newMessages) => {
     addDoc(collection(db, 'messages'), newMessages[0]);
