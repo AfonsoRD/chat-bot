@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 
-const CustomActions = ({ wrapperStyle, iconTextStyle }) => {
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend }) => {
   const actionSheet = useActionSheet();
 
   const onActionPress = () => {
@@ -61,10 +61,16 @@ const CustomActions = ({ wrapperStyle, iconTextStyle }) => {
     if (permissions?.granted) {
       const location = await Location.getCurrentPositionAsync({});
       if (location) {
-        console.log('sending the location occurs here');
+        onSend({
+          location: {
+            longitude: location.coords.longitude,
+            latitude: location.coords.latitude
+          }
+        });
       } else Alert.alert('Error occurred while fetching location');
     } else Alert.alert("Permissions haven't been granted.");
   };
+
   return (
     <TouchableOpacity
       style={styles.container}
@@ -93,7 +99,7 @@ const styles = StyleSheet.create({
   iconText: {
     color: '#b2b2b2',
     fontWeight: 'bold',
-    fontSize: 10,
+    fontSize: 16,
     backgroundColor: 'transparent',
     textAlign: 'center'
   }

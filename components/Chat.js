@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 
-//import circular button
+//import circular button and Map View
 import CustomActions from './CustomActions';
+import MapView from 'react-native-maps';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -98,6 +99,25 @@ const Chat = ({ db, route, navigation, isConnected }) => {
     return <CustomActions {...props} />;
   };
 
+  //MapView rendering
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421
+          }}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     //set the background color imported from Start.js as a object
     <View style={[styles.container, color]}>
@@ -106,11 +126,12 @@ const Chat = ({ db, route, navigation, isConnected }) => {
         renderBubble={renderBubble}
         renderInputToolbar={renderInputToolbar}
         onSend={(newMessages) => onSend(newMessages)}
+        renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
         user={{
           _id: userID,
           name: name
         }}
-        renderActions={renderCustomActions}
       />
       {/* fix keyboard bug android */}
       {Platform.OS === 'android' ? (
