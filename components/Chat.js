@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 
+//import circular button
+import CustomActions from './CustomActions';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
@@ -91,18 +94,23 @@ const Chat = ({ db, route, navigation, isConnected }) => {
     else return null;
   };
 
+  const renderCustomActions = (props) => {
+    return <CustomActions {...props} />;
+  };
+
   return (
     //set the background color imported from Start.js as a object
     <View style={[styles.container, color]}>
       <GiftedChat
         messages={messages}
         renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
         onSend={(newMessages) => onSend(newMessages)}
         user={{
           _id: userID,
           name: name
         }}
-        renderInputToolbar={renderInputToolbar}
+        renderActions={renderCustomActions}
       />
       {/* fix keyboard bug android */}
       {Platform.OS === 'android' ? (
