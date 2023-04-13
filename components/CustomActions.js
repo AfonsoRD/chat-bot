@@ -1,11 +1,20 @@
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet, Alert } from 'react-native';
 
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useActionSheet } from '@expo/react-native-action-sheet';
+import { ref, uploadBytes } from 'firebase/storage';
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend }) => {
+const CustomActions = ({
+  wrapperStyle,
+  iconTextStyle,
+  onSend,
+  storage,
+  userID
+}) => {
   const actionSheet = useActionSheet();
+
+  const newUploadRef = ref(storage, 'image123');
 
   const onActionPress = () => {
     const options = [
@@ -41,7 +50,14 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend }) => {
     if (permissions?.granted) {
       let result = await ImagePicker.launchImageLibraryAsync();
       if (!result.canceled) {
-        console.log('uploading and uploading the image occurs here');
+        const imageURI = result.assets[0].uri;
+        const uniqueRefString = generateReference(imageURI);
+        const response = await fetch(imageURI);
+        const blob = await response.blob();
+        const newUploadRef = ref(storage, uniqueRefString);
+        uploadBytes(newUploadRef, blob).then(async (snapshot) => {
+          console.log('File has been uploaded successfully');
+        });
       } else Alert.alert("Permissions haven't been granted.");
     }
   };
@@ -69,6 +85,13 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend }) => {
         });
       } else Alert.alert('Error occurred while fetching location');
     } else Alert.alert("Permissions haven't been granted.");
+  };
+
+  //function responsable for generateReference name (image)
+  const generateReference = (uri) => {
+    const timeStamp = new Date().getTime();
+    const imageName = uri.split('/')[uri.split('/').length - 1];
+    return `${userID}-${timeStamp}-${imageName}`;
   };
 
   return (

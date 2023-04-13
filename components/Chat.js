@@ -18,7 +18,7 @@ import {
 //import libary to handle the chat
 import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 
-const Chat = ({ db, route, navigation, isConnected }) => {
+const Chat = ({ db, route, navigation, isConnected, storage }) => {
   const { userID, name, color } = route.params;
   //console.log('backgroundColor', color);
 
@@ -96,7 +96,12 @@ const Chat = ({ db, route, navigation, isConnected }) => {
   };
 
   const renderCustomActions = (props) => {
-    return <CustomActions {...props} />;
+    return (
+      <CustomActions
+        storage={storage}
+        {...props}
+      />
+    );
   };
 
   //MapView rendering

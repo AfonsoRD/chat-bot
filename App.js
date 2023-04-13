@@ -22,6 +22,9 @@ import { useEffect } from 'react';
 import { LogBox, Alert } from 'react-native';
 LogBox.ignoreLogs(['AsyncStorage has been extracted from']);
 
+//import responsable for storing the images in the db
+import { getStorage } from 'firebase/storage';
+
 const App = () => {
   const firebaseConfig = {
     apiKey: 'AIzaSyBhlzxFSzjZNezXjS7N84oY-kKqwzUucYg',
@@ -37,6 +40,8 @@ const App = () => {
 
   // Initialize Cloud Firestore and get a reference to the service
   const db = getFirestore(app);
+  // Initialize the storage
+  const storage = getStorage(app);
 
   //useNetInfo() to define a new state that represents the network connectivity status
   const connectionStatus = useNetInfo();
@@ -65,6 +70,7 @@ const App = () => {
             <Chat
               isConnected={connectionStatus.isConnected}
               db={db}
+              storage={storage}
               {...props}
             />
           )}
