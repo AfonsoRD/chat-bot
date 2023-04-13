@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 
-//import circular button and Map View
-import CustomActions from './CustomActions';
-import MapView from 'react-native-maps';
+//import libary to handle the chat
+import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 
+//import circular button and Map View
+import MapView from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
@@ -15,8 +16,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 
-//import libary to handle the chat
-import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
+import CustomActions from './CustomActions';
 
 const Chat = ({ db, route, navigation, isConnected, storage }) => {
   const { userID, name, color } = route.params;
@@ -24,11 +24,6 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
   //A chat app needs to send, receive, and display messages, so add messages to state initialization
   const [messages, setMessages] = useState([]);
-
-  const loadCachedMessages = async () => {
-    const cachedMessages = (await AsyncStorage.getItem('messages')) || [];
-    setMessages(JSON.parse(cachedMessages));
-  };
 
   let unsubMessages;
 
@@ -62,6 +57,11 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     };
   }, [isConnected]);
 
+  const loadCachedMessages = async () => {
+    const cachedMessages = (await AsyncStorage.getItem('messages')) || [];
+    setMessages(JSON.parse(cachedMessages));
+  };
+
   const cacheNewMessages = async (messagesToCache) => {
     try {
       await AsyncStorage.setItem('messages', JSON.stringify(messagesToCache));
@@ -72,6 +72,11 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
   const onSend = (newMessages) => {
     addDoc(collection(db, 'messages'), newMessages[0]);
+  };
+
+  const renderInputToolbar = (props) => {
+    if (isConnected === true) return <InputToolbar {...props} />;
+    else return null;
   };
 
   const renderBubble = (props) => {
@@ -88,11 +93,6 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
         }}
       />
     );
-  };
-
-  const renderInputToolbar = (props) => {
-    if (isConnected) return <InputToolbar {...props} />;
-    else return null;
   };
 
   const renderCustomActions = (props) => {

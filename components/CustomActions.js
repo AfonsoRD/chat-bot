@@ -1,9 +1,8 @@
 import { TouchableOpacity, Text, View, StyleSheet, Alert } from 'react-native';
-
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { ref, uploadBytes } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const CustomActions = ({
   wrapperStyle,
@@ -13,8 +12,6 @@ const CustomActions = ({
   userID
 }) => {
   const actionSheet = useActionSheet();
-
-  const newUploadRef = ref(storage, 'image123');
 
   const onActionPress = () => {
     const options = [
@@ -45,20 +42,29 @@ const CustomActions = ({
     );
   };
 
+  const uploadAndSendImage = async (imageURI) => {
+    const uniqueRefString = generateReference(imageURI);
+    const newUploadRef = ref(storage, uniqueRefString);
+    const response = await fetch(imageURI);
+    const blob = await response.blob();
+    //console.log('uniqueRefString is ', uniqueRefString); || WORKING
+    //console.log('newUploadRef is ', newUploadRef); || WORKING
+    //console.log('response is ', response); || WORKING
+    //console.log('blob is ', blob); || WORKING
+    uploadBytes(newUploadRef, blob).then(async (snapshot) => {
+      console.log('imageURL is ', snapshot.ref);
+      const imageURL = await getDownloadURL(snapshot.ref);
+
+      onSend({ image: imageURL });
+    });
+  };
+
   const pickImage = async () => {
     let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissions?.granted) {
       let result = await ImagePicker.launchImageLibraryAsync();
-      if (!result.canceled) {
-        const imageURI = result.assets[0].uri;
-        const uniqueRefString = generateReference(imageURI);
-        const response = await fetch(imageURI);
-        const blob = await response.blob();
-        const newUploadRef = ref(storage, uniqueRefString);
-        uploadBytes(newUploadRef, blob).then(async (snapshot) => {
-          console.log('File has been uploaded successfully');
-        });
-      } else Alert.alert("Permissions haven't been granted.");
+      if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
+      else Alert.alert("Permissions haven't been granted.");
     }
   };
 
@@ -66,9 +72,8 @@ const CustomActions = ({
     let permissions = await ImagePicker.requestCameraPermissionsAsync();
     if (permissions?.granted) {
       let result = await ImagePicker.launchCameraAsync();
-      if (!result.canceled) {
-        console.log('uploading and uploading the image occurs here');
-      } else Alert.alert("Permissions haven't been granted.");
+      if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
+      else Alert.alert("Permissions haven't been granted.");
     }
   };
 
@@ -87,10 +92,11 @@ const CustomActions = ({
     } else Alert.alert("Permissions haven't been granted.");
   };
 
-  //function responsable for generateReference name (image)
   const generateReference = (uri) => {
-    const timeStamp = new Date().getTime();
+    // this will get the file name from the uri
     const imageName = uri.split('/')[uri.split('/').length - 1];
+    const timeStamp = new Date().getTime();
+    // console.log('namme choosen ', timeStamp, imageName, userID); WORKING
     return `${userID}-${timeStamp}-${imageName}`;
   };
 

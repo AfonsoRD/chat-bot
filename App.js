@@ -6,8 +6,6 @@ import Chat from './components/Chat';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Stack = createNativeStackNavigator();
-
 //Initialize Firebase and Firestore
 import { initializeApp } from 'firebase/app';
 import {
@@ -15,17 +13,21 @@ import {
   disableNetwork,
   enableNetwork
 } from 'firebase/firestore';
-
+//import responsable for storing the images in the db
+import { getStorage } from 'firebase/storage';
 //track device internet status
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useEffect } from 'react';
 import { LogBox, Alert } from 'react-native';
+
+const Stack = createNativeStackNavigator();
+
 LogBox.ignoreLogs(['AsyncStorage has been extracted from']);
 
-//import responsable for storing the images in the db
-import { getStorage } from 'firebase/storage';
-
 const App = () => {
+  //useNetInfo() to define a new state that represents the network connectivity status
+  const connectionStatus = useNetInfo();
+
   const firebaseConfig = {
     apiKey: 'AIzaSyBhlzxFSzjZNezXjS7N84oY-kKqwzUucYg',
     authDomain: 'chat-app-7425d.firebaseapp.com',
@@ -42,9 +44,6 @@ const App = () => {
   const db = getFirestore(app);
   // Initialize the storage
   const storage = getStorage(app);
-
-  //useNetInfo() to define a new state that represents the network connectivity status
-  const connectionStatus = useNetInfo();
 
   //that will display an alert popup if connection is lost
   useEffect(() => {
